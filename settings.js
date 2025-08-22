@@ -5,105 +5,65 @@ class SettingsManager {
         this.currentEditingGroup = null;
         this.draggedElement = null;
         
-        // Default groups configuration - Generic examples
-        this.defaultGroups = [
-            {
-                id: 'development',
-                name: 'Development',
-                icon: '💻',
-                patterns: ['github.com', 'gitlab.com', 'bitbucket.org'],
-                enabled: true,
-                order: 0
-            },
-            {
-                id: 'documentation',
-                name: 'Documentation',
-                icon: '📚',
-                patterns: ['confluence.atlassian.com', 'notion.so', 'gitbook.com'],
-                enabled: true,
-                order: 1
-            },
-            {
-                id: 'cloud-services',
-                name: 'Cloud Services',
-                icon: '☁️',
-                patterns: ['aws.amazon.com', 'console.cloud.google.com', 'portal.azure.com'],
-                enabled: true,
-                order: 2
-            },
-            {
-                id: 'productivity',
-                name: 'Productivity',
-                icon: '⚡',
-                patterns: ['slack.com', 'discord.com', 'teams.microsoft.com'],
-                enabled: true,
-                order: 3
-            },
-            {
-                id: 'google-workspace',
-                name: 'Google Workspace',
-                icon: '🔵',
-                patterns: ['docs.google.com', 'sheets.google.com', 'slides.google.com'],
-                enabled: true,
-                order: 4
-            },
-            {
-                id: 'project-management',
-                name: 'Project Management',
-                icon: '📋',
-                patterns: ['trello.com', 'asana.com', 'jira.atlassian.com'],
-                enabled: true,
-                order: 5
-            },
-            {
-                id: 'design',
-                name: 'Design',
-                icon: '🎨',
-                patterns: ['figma.com', 'sketch.com', 'canva.com'],
-                enabled: true,
-                order: 6
-            },
-            {
-                id: 'learning',
-                name: 'Learning',
-                icon: '🎓',
-                patterns: ['stackoverflow.com', 'developer.mozilla.org', 'w3schools.com'],
-                enabled: true,
-                order: 7
-            },
-            {
-                id: 'social-media',
-                name: 'Social Media',
-                icon: '📱',
-                patterns: ['twitter.com', 'linkedin.com', 'reddit.com'],
-                enabled: true,
-                order: 8
-            },
-            {
-                id: 'entertainment',
-                name: 'Entertainment',
-                icon: '🎬',
-                patterns: ['youtube.com', 'netflix.com', 'spotify.com'],
-                enabled: true,
-                order: 9
-            },
-            {
-                id: 'news',
-                name: 'News',
-                icon: '📰',
-                patterns: ['news.ycombinator.com', 'techcrunch.com', 'medium.com'],
-                enabled: true,
-                order: 10
-            }
-        ];
+        // Load configuration from preset
+        const config = window.BrowserHistoryOrganizerConfig;
+        if (!config) {
+            console.error('BrowserHistoryOrganizerConfig not found!');
+            this.defaultGroups = [];
+            this.STORAGE_KEYS = {};
+            return;
+        }
+        this.defaultGroups = config.groups || [];
+        this.STORAGE_KEYS = config.storageKeys || {};
         
         this.init();
     }
     
     async init() {
+        // Wait for DOM to be ready
+        if (document.readyState === 'loading') {
+            await new Promise(resolve => document.addEventListener('DOMContentLoaded', resolve));
+        }
+        
+        console.log('Initializing settings...');
         await this.loadSettings();
+        this.populateIconDropdown();
         this.bindEvents();
+        
+        // Ensure we have groups to display
+        if (!this.groups || this.groups.length === 0) {
+            console.log('No groups found, using defaults...');
+            this.groups = [...this.defaultGroups];
+        }
+        
+        console.log('About to render groups:', this.groups);
         this.renderGroups();
+        console.log('Settings initialization complete. Groups:', this.groups);
+    }
+    
+    populateIconDropdown() {
+        const iconDropdown = document.getElementById('iconDropdown');
+        if (!iconDropdown) return;
+        
+        const customOption = iconDropdown.querySelector('option[value="custom"]');
+        
+        // Clear existing options except the first and custom options
+        while (iconDropdown.children.length > 2) {
+            iconDropdown.removeChild(iconDropdown.children[1]);
+        }
+        
+        // Add icon options from constants
+        if (window.BrowserHistoryOrganizerConfig && window.BrowserHistoryOrganizerConfig.iconOptions) {
+            const iconOptions = window.BrowserHistoryOrganizerConfig.iconOptions;
+            iconOptions.forEach(option => {
+                const optionElement = document.createElement('option');
+                optionElement.value = option;
+                optionElement.textContent = option;
+                iconDropdown.insertBefore(optionElement, customOption);
+            });
+        } else {
+            console.error('BrowserHistoryOrganizerConfig not available');
+        }
     }
     
     bindEvents() {
@@ -112,6 +72,20 @@ class SettingsManager {
         document.getElementById('resetDefaultsBtn').addEventListener('click', () => this.resetToDefaults());
         document.getElementById('saveBtn').addEventListener('click', () => this.saveSettings());
         document.getElementById('cancelBtn').addEventListener('click', () => this.cancelChanges());
+        
+        // Dock settings
+        document.getElementById('enableDocking').addEventListener('change', this.handleDockSettingChange.bind(this));
+        document.querySelectorAll('input[name="dockSide"]').forEach(radio => {
+            radio.addEventListener('change', this.handleDockSettingChange.bind(this));
+        });
+        
+        // Dock width slider
+        const dockWidthSlider = document.getElementById('dockWidth');
+        const dockWidthValue = document.getElementById('dockWidthValue');
+        dockWidthSlider.addEventListener('input', (e) => {
+            dockWidthValue.textContent = e.target.value + 'px';
+        });
+        dockWidthSlider.addEventListener('change', this.handleDockSettingChange.bind(this));
         
         // Import/Export
         document.getElementById('exportBtn').addEventListener('click', () => this.exportSettings());
@@ -173,6 +147,8 @@ class SettingsManager {
     
     async loadSettings() {
         try {
+            console.log('Loading settings...', this.STORAGE_KEYS, this.defaultGroups);
+            
             // Check if chrome.storage is available
             if (!chrome.storage || !chrome.storage.sync) {
                 console.warn('Chrome storage API not available, using defaults');
@@ -180,13 +156,22 @@ class SettingsManager {
                 return;
             }
             
-            const result = await chrome.storage.sync.get(['historyGroups']);
-            if (result.historyGroups && result.historyGroups.length > 0) {
-                this.groups = result.historyGroups;
+            const result = await chrome.storage.sync.get([this.STORAGE_KEYS.websiteGroups, this.STORAGE_KEYS.dockSettings]);
+            console.log('Storage result:', result);
+            
+            if (result[this.STORAGE_KEYS.websiteGroups] && result[this.STORAGE_KEYS.websiteGroups].length > 0) {
+                this.groups = result[this.STORAGE_KEYS.websiteGroups];
+                console.log('Loaded groups from storage:', this.groups);
             } else {
                 // First time setup - use defaults
                 this.groups = [...this.defaultGroups];
+                console.log('Using default groups:', this.groups);
                 await this.saveSettings();
+            }
+            
+            // Load dock settings
+            if (result[this.STORAGE_KEYS.dockSettings]) {
+                this.loadDockSettings(result[this.STORAGE_KEYS.dockSettings]);
             }
         } catch (error) {
             console.error('Error loading settings:', error);
@@ -202,7 +187,7 @@ class SettingsManager {
                 return;
             }
             
-            await chrome.storage.sync.set({ historyGroups: this.groups });
+            await chrome.storage.sync.set({ [this.STORAGE_KEYS.websiteGroups]: this.groups });
             this.showToast('Settings saved successfully!', 'success');
             
             // Notify popup to refresh if it's open
@@ -221,9 +206,18 @@ class SettingsManager {
     }
     
     renderGroups() {
+        console.log('renderGroups called with', this.groups.length, 'groups');
         const container = document.getElementById('groupsList');
         
+        if (!container) {
+            console.error('groupsList container not found!');
+            return;
+        }
+        
+        console.log('Container found, groups:', this.groups);
+        
         if (this.groups.length === 0) {
+            console.log('No groups, showing empty state');
             container.innerHTML = `
                 <div class="empty-state">
                     <div class="icon">📂</div>
@@ -551,6 +545,56 @@ class SettingsManager {
         setTimeout(() => {
             toast.classList.remove('show');
         }, 3000);
+    }
+    
+    loadDockSettings(dockSettings) {
+        document.getElementById('enableDocking').checked = dockSettings.enabled || false;
+        
+        // Set dock side
+        if (dockSettings.side === 'left') {
+            document.getElementById('dockLeft').checked = true;
+        } else {
+            document.getElementById('dockRight').checked = true;
+        }
+        
+        // Set dock width (constrained to 350-1800 range)
+        const dockWidth = Math.max(350, Math.min(1800, dockSettings.width || 1000));
+        document.getElementById('dockWidth').value = dockWidth;
+        document.getElementById('dockWidthValue').textContent = dockWidth + 'px';
+    }
+    
+    getDockSettings() {
+        return {
+            enabled: document.getElementById('enableDocking').checked,
+            autoStartDocked: false, // Removed auto-start functionality
+            side: document.querySelector('input[name="dockSide"]:checked').value,
+            width: parseInt(document.getElementById('dockWidth').value)
+        };
+    }
+    
+    async handleDockSettingChange() {
+        try {
+            const dockSettings = this.getDockSettings();
+            
+            if (!chrome.storage || !chrome.storage.sync) {
+                console.warn('Chrome storage API not available for dock settings');
+                return;
+            }
+            
+            await chrome.storage.sync.set({
+                [this.STORAGE_KEYS.dockSettings]: dockSettings
+            });
+            
+            // Notify popup about dock settings change
+            if (chrome.runtime && chrome.runtime.sendMessage) {
+                chrome.runtime.sendMessage({
+                    action: 'dockSettingsUpdated',
+                    settings: dockSettings
+                });
+            }
+        } catch (error) {
+            console.error('Error saving dock settings:', error);
+        }
     }
     
     escapeHtml(text) {

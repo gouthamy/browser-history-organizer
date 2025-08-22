@@ -6,7 +6,9 @@
   "permissions": [
     "history",
     "activeTab",
-    "storage"
+    "storage",
+    "contextMenus",
+    "system.display"
   ],
   "options_ui": {
     "page": "settings.html",

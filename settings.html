@@ -14,6 +14,37 @@
         </header>
 
         <div class="settings-content">
+            <!-- Docking Settings Section -->
+            <section class="section">
+                <h2>🔗 Docking</h2>
+                
+                <div class="dock-settings-compact">
+                    <div class="dock-controls">
+                        <label class="setting-toggle">
+                            <input type="checkbox" id="enableDocking" class="setting-checkbox">
+                            <span>Enable Docking</span>
+                        </label>
+                        
+                        <div class="dock-options">
+                            <label class="dock-option">
+                                <input type="radio" name="dockSide" value="left" id="dockLeft">
+                                <span>Left</span>
+                            </label>
+                            <label class="dock-option">
+                                <input type="radio" name="dockSide" value="right" id="dockRight" checked>
+                                <span>Right</span>
+                            </label>
+                        </div>
+                        
+                        <div class="dock-width-control">
+                            <span class="width-label">Width:</span>
+                            <input type="range" id="dockWidth" min="350" max="1800" value="1000" class="width-slider">
+                            <span class="width-value" id="dockWidthValue">1000px</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <!-- Group Management Section -->
             <section class="section">
                 <h2>📂 Website Groups</h2>
@@ -87,37 +118,11 @@
                 <div class="form-group">
                     <label for="groupIcon">Icon (Emoji)</label>
                     <div class="icon-input-container">
-                        <select id="iconDropdown" class="icon-dropdown">
-                            <option value="">Choose from common icons...</option>
-                            <option value="💻">💻 Development</option>
-                            <option value="🌐">🌐 Web/Internet</option>
-                            <option value="📱">📱 Mobile/Social</option>
-                            <option value="🎨">🎨 Design/Creative</option>
-                            <option value="📊">📊 Analytics/Data</option>
-                            <option value="🔧">🔧 Tools/Utilities</option>
-                            <option value="📝">📝 Documentation</option>
-                            <option value="🎯">🎯 Marketing</option>
-                            <option value="💼">💼 Business</option>
-                            <option value="🎮">🎮 Gaming</option>
-                            <option value="📺">📺 Media/Video</option>
-                            <option value="🛒">🛒 Shopping</option>
-                            <option value="💰">💰 Finance</option>
-                            <option value="📚">📚 Learning/Education</option>
-                            <option value="⚡">⚡ Productivity</option>
-                            <option value="🔒">🔒 Security</option>
-                            <option value="☁️">☁️ Cloud Services</option>
-                            <option value="📞">📞 Communication</option>
-                            <option value="📈">📈 Growth/Analytics</option>
-                            <option value="🎵">🎵 Music/Audio</option>
-                            <option value="📷">📷 Photography</option>
-                            <option value="🍔">🍔 Food/Lifestyle</option>
-                            <option value="✈️">✈️ Travel</option>
-                            <option value="🏠">🏠 Home/Personal</option>
-                            <option value="❤️">❤️ Health/Wellness</option>
-                            <option value="📧">📧 Email</option>
-                            <option value="🔗">🔗 Links/Others</option>
-                            <option value="custom">✏️ Custom icon...</option>
-                        </select>
+                                                           <select id="iconDropdown" class="icon-dropdown">
+                                       <option value="">Choose from common icons...</option>
+                                       <!-- Options will be populated dynamically from constants -->
+                                       <option value="custom">✏️ Custom icon...</option>
+                                   </select>
                         <input type="text" id="groupIcon" placeholder="Enter custom emoji..." maxlength="2" style="display: none;">
                         <div class="icon-preview" id="iconPreview">
                             <span id="selectedIcon">🎯</span>
@@ -149,6 +154,7 @@
         <span id="toastMessage"></span>
     </div>
 
+    <script src="constants.js"></script>
     <script src="settings.js"></script>
 </body>
 </html>
