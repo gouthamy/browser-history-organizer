@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browser History Organizer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Browser History Organizer</h1>
+            <div class="header-buttons">
+                <div class="refresh-btn" id="refreshBtn" title="Refresh History">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="23 4 23 10 17 10"></polyline>
+                        <polyline points="1 20 1 14 7 14"></polyline>
+                        <path d="m3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                    </svg>
+                </div>
+                <div class="settings-btn" id="settingsBtn" title="Settings">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="m12 1 1.5 4.5 4.5-1.5-1.5 4.5 4.5 1.5-4.5 1.5 1.5 4.5-4.5-1.5L12 23l-1.5-4.5-4.5 1.5 1.5-4.5L2 13l4.5-1.5L5 7l4.5 1.5L12 1z"></path>
+                    </svg>
+                </div>
+            </div>
+        </header>
+        
+        <div class="main-content">
+            <!-- Left Panel - Website Groups -->
+            <div class="left-panel">
+                <div class="panel-title">
+                    <h3>Website Groups</h3>
+                </div>
+                <div class="website-groups" id="websiteGroups">
+                    <div class="loading">Loading history...</div>
+                </div>
+            </div>
+            
+            <!-- Right Panel - Recent Visits -->
+            <div class="right-panel">
+                <div class="panel-header">
+                    <div class="top-row">
+                        <h2 id="selectedGroupTitle">Select a website group</h2>
+                        <div class="visit-count" id="visitCount"></div>
+                    </div>
+                    <div class="view-toggle" id="viewToggle" style="display: none;">
+                        <button class="toggle-btn active" id="recentBtn">Recent</button>
+                        <button class="toggle-btn" id="favoritesBtn">⭐ Favorites</button>
+                    </div>
+                </div>
+                <div class="search-box-right" id="searchBoxRight" style="display: none;">
+                    <input type="text" id="searchInput" placeholder="Search in selected group...">
+                    <div class="search-icon">🔍</div>
+                </div>
+                <div class="recent-visits" id="recentVisits">
+                    <div class="empty-state">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                        </svg>
+                        <p>Click on a website group to view recent visits</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="popup.js"></script>
+</body>
+</html>
